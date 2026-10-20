@@ -1,0 +1,41 @@
+[
+  {
+    "id": "ky-2023-03-windstorm",
+    "name": "March 2023 windstorm",
+    "role": "calibration",
+    "start": "2023-03-01",
+    "end": "2023-03-09",
+    "utc_offset": -5,
+    "tz": "EST",
+    "forecasts": false,
+    "notes": [
+      {"time": "2023-03-03T12:00", "text": "Widespread damaging winds cross Kentucky"}
+    ]
+  },
+  {
+    "id": "ky-2024-05-memorial",
+    "name": "Memorial Day weekend storms, May 2024",
+    "role": "test",
+    "start": "2024-05-24",
+    "end": "2024-05-31",
+    "utc_offset": -4,
+    "tz": "EDT",
+    "forecasts": true,
+    "notes": [
+      {"time": "2024-05-26T18:00", "text": "Severe thunderstorms with damaging winds sweep the state"}
+    ]
+  },
+  {
+    "id": "ky-2024-09-helene",
+    "name": "Remnants of Hurricane Helene, September 2024",
+    "role": "test",
+    "start": "2024-09-25",
+    "end": "2024-10-02",
+    "utc_offset": -4,
+    "tz": "EDT",
+    "forecasts": true,
+    "notes": [
+      {"time": "2024-09-27T15:00", "text": "Helene's remnants bring strong winds to eastern and central Kentucky"}
+    ]
+  }
+]

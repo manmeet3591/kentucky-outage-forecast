@@ -1,38 +1,45 @@
-"""Weather-driven distribution outage and restoration model (prototype, physics/fragility based).
+"""Weather-driven distribution outage and restoration model.
 
-For each sample point and hour, the fraction of customers whose supply is interrupted by the
-current weather is given by lognormal fragility curves:
+Per sample point and hour, lognormal fragility curves give the share of customers whose supply
+is interrupted by the current weather:
 
     D = 1 - (1 - F_gust) (1 - F_rain24) (1 - F_rain72)
 
-  F_gust   tree-fall / conductor-clash faults on overhead lines vs 10 m wind gust
-  F_rain24 water ingress, flashovers, pole failures in saturated ground vs 24 h rainfall
-  F_rain72 flooding of substations / landslides / access loss vs 72 h rainfall
+  F_gust   tree-fall / conductor faults on overhead lines vs 10 m wind gust (dominant in Kentucky)
+  F_rain24 flash flooding, flashovers, poles in saturated ground vs 24 h rainfall
+  F_rain72 prolonged flooding / access loss vs 72 h rainfall
 
-The county outage state U (fraction of people without power) then evolves hourly:
+County outage share U then evolves hourly:
 
-    D6        = mean of D over the last SUSTAIN_H hours            # faults need sustained exposure
-    restored  = U * (1 - exp(-1 / tau))                           # crews restore with time constant tau
-    tau       = TAU0 * (1 + R72 / TAU_RAIN)                       # flooding slows access and repair
-    restored  = 0 while max gust > SAFE_GUST or county-mean rain > SAFE_RAIN (crew stand-down)
-    U         = max(D6, U - restored)                             # current damage, or backlog not yet restored
+    D6        = mean county D over the last SUSTAIN_H hours
+    tau       = TAU0 * (1 + R72 / TAU_RAIN)      flooding slows access and repair
+    restored  = U * (1 - exp(-1 / tau)),  0 while max gust > SAFE_GUST or mean rain > SAFE_RAIN
+    U         = max(D6, U - restored)
 
-Parameters are priors chosen for ERA5/GFS-scale (smoothed) intensities. They are meant to be
-recalibrated (or replaced by a learned model) against utility outage logs, e.g. KPLC
-interruption records, see README.
+Gust fragility and TAU0 are calibrated against EAGLE-I observed outages (calibrate.py).
 """
+import json
 import math
+import pathlib
 
-PARAMS = {
-    "gust": {"median": 75.0, "beta": 0.30},     # km/h (50 -> ~9%, 60 -> ~23%)
-    "rain24": {"median": 250.0, "beta": 0.50},  # mm  (100 mm -> ~3%, 150 mm -> ~15%)
-    "rain72": {"median": 400.0, "beta": 0.50},  # mm  (200 mm -> ~8%)
-    "SUSTAIN_H": 6.0,
-    "TAU0": 10.0,       # h, typical fault restoration time constant in dry, calm weather
-    "TAU_RAIN": 80.0,   # mm of 72 h rain that doubles restoration time
-    "SAFE_GUST": 60.0,  # km/h
-    "SAFE_RAIN": 5.0,   # mm/h, county mean
+DEFAULT = {
+    "gust": {"median": 90.0, "beta": 0.25},
+    "rain24": {"median": 200.0, "beta": 0.50},
+    "rain72": {"median": 350.0, "beta": 0.50},
+    "SUSTAIN_H": 3,
+    "TAU0": 24.0,
+    "TAU_RAIN": 80.0,
+    "SAFE_GUST": 65.0,
+    "SAFE_RAIN": 8.0,
 }
+PARAMS_FILE = pathlib.Path(__file__).with_name("params.json")
+
+
+def load_params():
+    p = json.loads(json.dumps(DEFAULT))
+    if PARAMS_FILE.exists():
+        p.update(json.loads(PARAMS_FILE.read_text())["params"])
+    return p
 
 
 def lognorm_cdf(x, median, beta):
@@ -51,41 +58,50 @@ def rolling_sum(xs, n):
     return out
 
 
-def point_damage(rain, gust, p=PARAMS):
-    """Hourly damage fraction D and 72 h rain for one point."""
-    rain = [x or 0.0 for x in rain]
-    gust = [x or 0.0 for x in gust]
-    r24, r72 = rolling_sum(rain, 24), rolling_sum(rain, 72)
-    d = []
-    for g, a, b in zip(gust, r24, r72):
-        fg = lognorm_cdf(g, **p["gust"])
-        f24 = lognorm_cdf(a, **p["rain24"])
-        f72 = lognorm_cdf(b, **p["rain72"])
-        d.append(1 - (1 - fg) * (1 - f24) * (1 - f72))
-    return d, r72
+def prepare(points):
+    """Clean point series once: gust, 24/72 h rain, county max gust and mean rain per hour."""
+    pts = []
+    for pt in points:
+        rain = [x or 0.0 for x in pt["rain"]]
+        pts.append({"gust": [x or 0.0 for x in pt["gust"]], "r24": rolling_sum(rain, 24), "r72": rolling_sum(rain, 72), "rain": rain})
+    n = len(pts[0]["gust"])
+    return {
+        "pts": pts, "n": n,
+        "gmax": [max(p["gust"][t] for p in pts) for t in range(n)],
+        "rmean": [sum(p["rain"][t] for p in pts) / len(pts) for t in range(n)],
+        "R72": [sum(p["r72"][t] for p in pts) / len(pts) for t in range(n)],
+    }
 
 
-def simulate(points, p=PARAMS):
-    """points: list of dicts with hourly 'rain' and 'gust'. Returns county-level hourly series."""
-    n = len(points[0]["rain"])
-    dmg = [point_damage(pt["rain"], pt["gust"], p) for pt in points]
-    D = [sum(d[0][t] for d in dmg) / len(dmg) for t in range(n)]
-    R72 = [sum(d[1][t] for d in dmg) / len(dmg) for t in range(n)]
-    gmax = [max((pt["gust"][t] or 0) for pt in points) for t in range(n)]
-    rmean = [sum((pt["rain"][t] or 0) for pt in points) / len(points) for t in range(n)]
+def damage(prep, p):
+    """County-mean hourly damage fraction D."""
+    n, pts = prep["n"], prep["pts"]
+    D = [0.0] * n
+    for pt in pts:
+        for t in range(n):
+            fg = lognorm_cdf(pt["gust"][t], **p["gust"])
+            f24 = lognorm_cdf(pt["r24"][t], **p["rain24"])
+            f72 = lognorm_cdf(pt["r72"][t], **p["rain72"])
+            D[t] += (1 - (1 - fg) * (1 - f24) * (1 - f72)) / len(pts)
+    return D
+
+
+def restore(prep, D, p):
     S = int(p["SUSTAIN_H"])
-    U, out, new_s, rest_s = 0.0, [], [], []
-    for t in range(n):
-        d6 = sum(D[max(0, t - S + 1):t + 1]) / min(S, t + 1)
-        tau = p["TAU0"] * (1 + R72[t] / p["TAU_RAIN"])
-        safe = gmax[t] <= p["SAFE_GUST"] and rmean[t] <= p["SAFE_RAIN"]
+    U, out = 0.0, []
+    for t in range(prep["n"]):
+        d = sum(D[max(0, t - S + 1):t + 1]) / min(S, t + 1)
+        tau = p["TAU0"] * (1 + prep["R72"][t] / p["TAU_RAIN"])
+        safe = prep["gmax"][t] <= p["SAFE_GUST"] and prep["rmean"][t] <= p["SAFE_RAIN"]
         restored = U * (1 - math.exp(-1 / tau)) if safe else 0.0
-        nxt = max(d6, U - restored)
-        new_s.append(max(0.0, nxt - (U - restored)))
-        rest_s.append(restored)
-        U = min(1.0, nxt)
+        U = min(1.0, max(d, U - restored))
         out.append(U)
-    return {"U": out, "D": D, "R72": R72, "new": new_s, "restored": rest_s}
+    return out
+
+
+def simulate(points, p):
+    prep = prepare(points)
+    return restore(prep, damage(prep, p), p)
 
 
 def summarize(U, times, step_h=1):

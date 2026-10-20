@@ -1,76 +1,72 @@
-# Kenya Power Outage & Restoration Forecast
+# Kentucky Power Outage & Restoration Forecast
 
-Weather-driven forecasts of **who will lose power, when, and for how long**. The first case is a hindcast of Kenya's **April–May 2024 long-rains floods and Cyclone Hidaya** (15 April – 10 May 2024).
+Weather-driven forecasts of **which Kentucky counties will lose power, when, and for how long**, calibrated and tested against observed outages from ORNL's **EAGLE-I**.
 
-**Live dashboard:** https://manmeet3591.github.io/kenya-outage-forecast/
+**Live dashboard:** https://manmeet3591.github.io/kentucky-outage-forecast/
 
-A Disaster Science Operations Center prototype. Companion to the [Kenya Critical Infrastructure Risk map](https://github.com/manmeet3591/kenya-infra-risk).
+A Disaster Science Operations Center prototype.
 
-## Why: going beyond EAGLE-I
+## Events
 
-ORNL's EAGLE-I monitors US outages from utility feeds and shows who is out *now*. This system targets decisions made *before* and *during* an event:
+| Event | Role | EAGLE-I observed peak |
+|---|---|---|
+| March 2023 windstorm (1–9 Mar) | calibration | ~523k customers out (≈ 22% of Kentucky) |
+| Memorial Day weekend storms (24–31 May 2024) | independent test, with 1–3 day forecasts | ~209k |
+| Remnants of Hurricane Helene (25 Sep – 2 Oct 2024) | independent test, with 1–3 day forecasts | ~220k |
 
-- **Lead time.** The same model runs on NOAA GFS forecasts issued 1, 2 and 3 days ahead, so you can see what a control room would have known in advance.
-- **Restoration.** It predicts time to 90% restoration, including slowdowns from flooding and crew stand-downs in high wind or heavy rain.
-- **Drivers.** Every predicted outage is attributed to gusts, intense rain or prolonged flooding.
-- **Critical facilities.** It estimates how many hospitals are likely to be running on backup power.
-- **No outage feed needed.** It runs on weather and asset data alone; utility logs make it better.
+## Results vs EAGLE-I
 
-## Dashboard
+- **Calibration (March 2023):** statewide peak within 13%, peak timing exact, statewide curve correlation 0.98.
+- **Helene (test):** in forecasts issued **3 days ahead**, the statewide peak arrived within 3 h of the observed peak, and 97% of hard-hit counties (≥5% out) were flagged 2 days ahead. Magnitude was overpredicted (hindcast about 2× the observed peak) and restoration was too slow. One calibration event isn't enough.
+- **Memorial Day storms (test): missed.** Thunderstorm gusts aren't resolved by ~25 km ERA5/GFS, so the hindcast reached only 4% of the observed peak. This is the case for 3 km HRRR and **1 km Aircast SR** inputs.
 
-- A timeline player with a county map of the predicted share of people without power, with hospitals flagged in affected counties.
-- A switch between **Hindcast (ERA5)** and **Forecast 1 / 2 / 3 days ahead**.
-- A national curve of people without power for all four inputs, plus event annotations.
-- A county panel: outage curves, rain and gust drivers, peak, restoration time and people-hours.
-- **Forecast skill**: forecast versus hindcast consistency (hit rate, false alarms, timing error).
+The full tables are in the dashboard's *Skill vs EAGLE-I* tab.
+
+## Going beyond EAGLE-I
+
+EAGLE-I shows who is out *now*. This system predicts who **will** be out (1–3 days ahead today), how long restoration will take, what is driving each outage, and how many hospitals are likely on backup power. EAGLE-I's 2014–2025 archive is its training and verification ground truth.
 
 ## Model
 
-`pipeline/outage_model.py` is a transparent fragility-and-restoration model:
+`pipeline/outage_model.py`:
 
 ```
-D   = 1 - (1 - F_gust)(1 - F_rain24)(1 - F_rain72)    lognormal fragility curves per sample point
-U_t = max(mean_6h(D), U_{t-1} - restored)              share of people without power
-restored = U (1 - e^{-1/tau}),  tau = tau0 (1 + R72 / 80 mm),  paused in unsafe weather
+D   = 1 - (1 - F_gust)(1 - F_rain24)(1 - F_rain72)    lognormal fragility per sample point (288 points)
+U_t = max(mean_3h(D), U_{t-1} - restored)              share of customers out, per county
+restored = U (1 - e^{-1/tau}),  tau = tau0 (1 + R72/80 mm),  paused while gust > 65 km/h or rain > 8 mm/h
 ```
 
-The parameters are **priors**. The plan is to calibrate them, then replace them with a learned model (gradient boosting, or a graph neural network over the feeder network), once KPLC interruption logs are available.
-
-## Key findings from the hindcast
-
-- The national peak is about 0.9 million people without power, on 2 May 2024. The heaviest hits are Mt Kenya slopes (Meru) and the coast (Mombasa, Kilifi, Kwale) as Hidaya approached.
-- GFS forecasts caught about half of the flagged counties 1–2 days ahead. Timing and location skill is limited at ~25 km resolution.
-- **Nairobi is a known miss.** ERA5's wettest 3-hour county rainfall is only 12.6 mm, even though there was severe flash flooding. Coarse models smooth out intense urban storms. This motivates the **1 km Aircast SR** model.
-
-These are consistency checks against a reanalysis-driven hindcast, **not validation against observed outages**.
+`pipeline/calibrate.py` fits the gust fragility (median 110 km/h, β 0.3) and τ₀ (36 h) by grid search on March 2023 only. The loss is the RMSE of customers out per county-hour against EAGLE-I.
 
 ## Data
 
 | | Source |
 |---|---|
-| Hindcast weather | ERA5 hourly (Copernicus/ECMWF) via Open-Meteo |
-| Forecast weather | NOAA GFS, previous runs 1–3 days before valid time, via Open-Meteo Previous Runs API |
-| Counties | geoBoundaries gbOpen KEN ADM1 (CC BY 4.0) |
+| Observed outages, customer counts | EAGLE-I recorded outages 2014–2025 and modeled customer counts (Brelsford et al., ORNL, figshare) |
+| Hindcast weather | ERA5 hourly via Open-Meteo |
+| Forecast weather | NOAA GFS, runs issued 1–3 days before valid time, via Open-Meteo Previous Runs API (archive from early 2024) |
+| Counties | US Census TIGERweb |
 | Hospitals, substations | OpenStreetMap contributors (ODbL) |
-| Population | KNBS 2019 census (via Wikipedia "Counties of Kenya") |
 
 ## Rebuild
 
-Pure Python 3 with `requests`. The counties, assets and grid inputs in `raw/` come from the `kenya-infra-risk` pipeline.
+Pure Python 3 with `requests`.
 
 ```bash
 cd pipeline
-python3 fetch_population.py
-python3 fetch_event_weather.py   # ~2 min
-python3 build_outage.py          # -> docs/data/
+python3 fetch_static.py              # counties, customers, OSM assets
+python3 fetch_eaglei.py 2023 2024    # streams ~2.6 GB, keeps Kentucky rows
+python3 fetch_event_weather.py       # ERA5 + GFS for events.json
+python3 calibrate.py                 # -> params.json
+python3 build.py                     # -> docs/data/
 python3 -m http.server -d ../docs 8000
 ```
 
-To run a different event, edit `pipeline/event.json` (dates, notes). Check that the Previous Runs API covers your dates.
+Add events in `pipeline/events.json`.
 
 ## Roadmap
 
-1. Calibrate against KPLC interruption records, and social-media and news outage reports, as interim validation.
-2. Swap ERA5/GFS for **Aircast SR** (1 km, 1 h), and extend lead time with the AI S2S model.
-3. Feeder-level exposure: vegetation, terrain and line age from OSM and utility GIS.
-4. Live mode: run daily on the latest forecasts and push alerts to county emergency managers.
+1. Calibrate across dozens of EAGLE-I events from 2014–2025, then move to a learned model with vegetation, terrain, feeder and utility-territory features.
+2. Use HRRR (3 km) and Aircast SR (1 km, 1 h) inputs for thunderstorm events.
+3. Live mode: daily runs on the latest forecasts, with alerts for county emergency managers and utility control rooms (EKPC, Big Rivers, LG&E/KU).
+4. Add ice storms, and link to load forecasting for extreme heat and cold swings.

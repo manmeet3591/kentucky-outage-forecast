@@ -1,0 +1,58 @@
+{
+ "events": [
+  {
+   "id": "ky-2023-03-windstorm",
+   "name": "March 2023 windstorm",
+   "role": "calibration",
+   "start": "2023-03-01",
+   "end": "2023-03-09",
+   "tz": "EST",
+   "forecasts": false
+  },
+  {
+   "id": "ky-2024-05-memorial",
+   "name": "Memorial Day weekend storms, May 2024",
+   "role": "test",
+   "start": "2024-05-24",
+   "end": "2024-05-31",
+   "tz": "EDT",
+   "forecasts": true
+  },
+  {
+   "id": "ky-2024-09-helene",
+   "name": "Remnants of Hurricane Helene, September 2024",
+   "role": "test",
+   "start": "2024-09-25",
+   "end": "2024-10-02",
+   "tz": "EDT",
+   "forecasts": true
+  }
+ ],
+ "params": {
+  "gust": {
+   "median": 110,
+   "beta": 0.3
+  },
+  "rain24": {
+   "median": 200.0,
+   "beta": 0.5
+  },
+  "rain72": {
+   "median": 350.0,
+   "beta": 0.5
+  },
+  "SUSTAIN_H": 3,
+  "TAU0": 36,
+  "TAU_RAIN": 80.0,
+  "SAFE_GUST": 65.0,
+  "SAFE_RAIN": 8.0
+ },
+ "calibration": {
+  "calibrated_on": "ky-2023-03-windstorm",
+  "rmse_customers": 1773.7,
+  "sim_statewide_peak": 581892,
+  "loss": "RMSE customers out per county-hour"
+ },
+ "total_customers": 2338856,
+ "flag": 0.05
+}

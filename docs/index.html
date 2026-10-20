@@ -3,27 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kenya Outage Forecast</title>
-<meta name="description" content="Weather-driven power outage and restoration-time forecasts for Kenya: hindcast of the April–May 2024 long-rains floods with 1–3 day forecast lead times.">
+<title>Kentucky Outage Forecast</title>
+<meta name="description" content="Weather-driven power outage and restoration forecasts for Kentucky, calibrated and tested against EAGLE-I observed outages: March 2023 windstorm, May 2024 storms, Hurricane Helene remnants.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 <header class="top">
   <div>
-    <h1>Kenya Power Outage &amp; Restoration Forecast</h1>
-    <p class="sub">Hindcast · <span id="evName"></span></p>
+    <h1>Kentucky Power Outage &amp; Restoration Forecast</h1>
+    <p class="sub">Predicted vs observed (EAGLE-I) · <span id="evName"></span></p>
   </div>
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-view="map">Event</button>
-    <button role="tab" aria-selected="false" data-view="skill">Forecast skill</button>
-    <button role="tab" aria-selected="false" data-view="eagle">vs EAGLE-I</button>
+    <button role="tab" aria-selected="false" data-view="skill">Skill vs EAGLE-I</button>
+    <button role="tab" aria-selected="false" data-view="eagle">Beyond EAGLE-I</button>
     <button role="tab" aria-selected="false" data-view="method">Method</button>
   </nav>
 </header>
 
 <div class="bar">
-  <div class="seg" id="source" role="radiogroup" aria-label="Weather input"></div>
+  <label class="evsel">Event <select id="event" aria-label="Event"></select></label>
+  <div class="seg" id="source" role="radiogroup" aria-label="Map shows"></div>
   <button id="play" class="play" aria-label="Play">▶</button>
   <input id="time" type="range" min="0" value="0" aria-label="Time">
   <output id="tlabel" class="tlabel"></output>
@@ -32,7 +33,7 @@
 <main id="app">
   <section class="view" id="view-map">
     <div class="mapcol">
-      <div id="map" role="region" aria-label="Map of predicted outages"></div>
+      <div id="map" role="region" aria-label="Map of outages"></div>
       <div class="legend" id="legend"></div>
       <div class="note" id="note"></div>
     </div>
@@ -41,65 +42,64 @@
       <div id="county"></div>
     </aside>
     <div class="national">
-      <div class="chead"><h2>People without power, national</h2><div class="key" id="natKey"></div></div>
+      <div class="chead"><h2>Customers without power, statewide</h2><div class="key" id="natKey"></div></div>
       <div id="natChart" class="chart"></div>
     </div>
   </section>
 
   <section class="view hidden prose" id="view-skill">
-    <h2>Would we have seen it coming?</h2>
-    <p>Each forecast row runs the same outage model on NOAA GFS forecasts issued <b>1, 2 or 3 days before</b> each hour, and compares the result with the ERA5-driven hindcast. A county is "flagged" when its peak outage is ≥ <span class="flag"></span>% of people.</p>
-    <div class="tablewrap"><table id="skillTbl"></table></div>
-    <p class="caveat"><b>This measures consistency with the reanalysis hindcast, not accuracy against real outages.</b> We haven't found a public, county-level record of unplanned outages for Kenya. Validation needs KPLC interruption logs; see the Method tab.</p>
-    <h3>Known gap: Nairobi</h3>
-    <p id="gap"></p>
+    <h2>How well does it predict real outages?</h2>
+    <p>Every model run is scored against <b>EAGLE-I</b>, ORNL's record of customers out by county every 15 minutes. The model was calibrated on the <b>March 2023 windstorm only</b>. The two 2024 events are independent tests, run with ERA5 (hindcast) and with NOAA GFS forecasts issued 1–3 days ahead.</p>
+    <div id="skillTables"></div>
+    <h3>What we learn</h3>
+    <ul id="findings"></ul>
   </section>
 
   <section class="view hidden prose" id="view-eagle">
     <h2>How this goes beyond EAGLE-I</h2>
-    <p>ORNL's EAGLE-I collects outage counts from US utilities every 15 minutes and maps customers out by county. It's an excellent <i>situational awareness</i> tool: it shows what is out <i>now</i>. This prototype aims at the decisions that come <i>before</i> the outage and during the restoration:</p>
+    <p>EAGLE-I is the best record of US outages: it shows who is out <i>now</i>, which is why it serves here as ground truth. This system adds the decisions that come <i>before</i> and <i>during</i> an event:</p>
     <div class="tablewrap"><table class="cmp">
       <thead><tr><th></th><th>EAGLE-I</th><th>This system</th></tr></thead>
       <tbody>
         <tr><td>Question answered</td><td>Who is out right now?</td><td>Who <b>will</b> be out, when, and for how long?</td></tr>
-        <tr><td>Lead time</td><td>0 (observed)</td><td>1–3 days today; up to 6 weeks of risk outlook with our AI S2S model</td></tr>
-        <tr><td>Restoration</td><td>Observed after the fact</td><td>Predicted time to 90% restoration, accounting for flooding and crew stand-downs</td></tr>
-        <tr><td>Drivers</td><td>Outage counts, with hazard layers shown alongside</td><td>Attributes each predicted outage to wind, intense rain or prolonged flooding</td></tr>
-        <tr><td>Critical facilities</td><td>Not linked</td><td>Expected hospitals without grid power, from the infrastructure risk layer</td></tr>
-        <tr><td>Where utility outage maps don't exist</td><td>No coverage</td><td>Works from weather and asset data alone; utility logs make it better</td></tr>
-        <tr><td>Weather resolution</td><td>n/a</td><td>~25 km now; 1 km with Aircast SR (next version)</td></tr>
-        <tr><td>Openness</td><td>Live platform access restricted; historical county data released</td><td>Open code, data and methods</td></tr>
+        <tr><td>Lead time</td><td>0 (observed)</td><td>1–3 days today (statewide peak timing within 0–6 h for Helene, 3 days out); weeks of risk outlook with our AI S2S model</td></tr>
+        <tr><td>Restoration</td><td>Observed after the fact</td><td>Predicted time to 90% restored, with crew stand-downs in high winds and slower repair in flooding</td></tr>
+        <tr><td>Drivers</td><td>Outage counts, with hazard layers shown alongside</td><td>Attributes each predicted outage to gusts, intense rain or prolonged flooding</td></tr>
+        <tr><td>Critical facilities</td><td>Not linked</td><td>Expected hospitals running on backup power</td></tr>
+        <tr><td>Where utility outage maps don't exist</td><td>No coverage</td><td>Runs from weather and asset data alone</td></tr>
+        <tr><td>Weather resolution</td><td>n/a</td><td>~25 km now; 1 km with Aircast SR, which is needed for thunderstorm events</td></tr>
       </tbody>
     </table></div>
-    <p>The two approaches are complementary. A Kenyan EAGLE-I-style feed of KPLC outage counts would be the ideal training and validation target for the forecast model.</p>
+    <p>The two work together: EAGLE-I's 2014–2025 archive provides hundreds of Kentucky events to train and verify the forecast model on, and its live feed can update the restoration forecast as an event unfolds.</p>
   </section>
 
   <section class="view hidden prose" id="view-method">
     <h2>Method</h2>
     <h3>Weather inputs</h3>
     <ul>
-      <li><b>Hindcast</b>: ERA5 reanalysis (hourly rain and 10 m gusts), our best estimate of what happened.</li>
-      <li><b>Forecasts</b>: NOAA GFS runs issued 1, 2 and 3 days before each valid hour (Open-Meteo Previous Runs API), i.e. what a forecaster would actually have had.</li>
-      <li>Every county is sampled at ~0.5° grid points plus its centroid (199 points nationally).</li>
+      <li><b>Hindcast</b>: ERA5 reanalysis, hourly 10 m gusts and rain.</li>
+      <li><b>Forecasts</b>: NOAA GFS runs issued 1, 2 and 3 days before each valid hour (Open-Meteo Previous Runs API, available from early 2024).</li>
+      <li>Kentucky is sampled on a 0.25° grid plus every county centroid (288 points).</li>
     </ul>
     <h3>Outage model</h3>
-    <p>At each point, lognormal fragility curves turn weather into the share of customers whose supply is interrupted:</p>
     <p class="eq">D = 1 − (1 − F<sub>gust</sub>)(1 − F<sub>rain 24h</sub>)(1 − F<sub>rain 72h</sub>)</p>
     <ul id="params"></ul>
-    <p>County outage share U tracks the 6-hour mean damage and is restored with time constant τ = τ₀(1 + R₇₂/<span class="taur"></span> mm). Restoration pauses while gusts exceed <span class="sg"></span> km/h or county-mean rain exceeds <span class="sr"></span> mm/h (crew safety). People affected = U × county population (2019 census).</p>
+    <p>The county outage share U tracks the <span class="sus"></span>-hour mean damage. It is restored with time constant τ = τ₀(1 + R₇₂/<span class="taur"></span> mm), with work paused while gusts exceed <span class="sg"></span> km/h or rain exceeds <span class="sr"></span> mm/h. Customers out = U × customers (EAGLE-I modeled customer counts).</p>
+    <h3>Calibration</h3>
+    <p id="calib"></p>
     <h3>Limitations &amp; next steps</h3>
     <ul>
-      <li>Fragility parameters are expert priors, not yet calibrated. With KPLC interruption logs we will fit them, then replace them with a learned model (gradient boosting / graph neural network over the feeder network).</li>
-      <li>Reanalysis and GFS at ~25 km miss intense local storms (see Nairobi). <b>Aircast SR</b> at 1 km / 1 hour is designed to fix this.</li>
-      <li>Population is used in place of electricity customers; county electrification rates differ widely.</li>
-      <li>River flooding, landslides and grid-level cascading failures (e.g. transmission trips causing national blackouts) aren't modelled.</li>
+      <li>One calibration event is too few. Next, fit across the full EAGLE-I archive (2014–2025) and replace the fragility curves with a learned model using vegetation, terrain, feeder exposure and utility territory.</li>
+      <li>Thunderstorm (convective) gusts are invisible at 25 km. Use HRRR (3 km) and Aircast SR (1 km) inputs.</li>
+      <li>EAGLE-I doesn't cover every Kentucky customer (some co-ops report incompletely), so observed outages are a lower bound.</li>
+      <li>Transmission-level failures and generation shortfalls (e.g. the December 2022 TVA rolling blackouts) are out of scope.</li>
     </ul>
     <h3>Data</h3>
-    <p>ERA5 (Copernicus/ECMWF) and NOAA GFS via Open-Meteo; county boundaries geoBoundaries (CC BY 4.0); hospitals © OpenStreetMap contributors (ODbL); populations KNBS 2019 census.</p>
+    <p>EAGLE-I recorded outages 2014–2025 and modeled customer counts (Brelsford et al., ORNL, figshare); ERA5 (Copernicus/ECMWF) and NOAA GFS via Open-Meteo; county boundaries US Census TIGERweb; hospitals and substations © OpenStreetMap contributors (ODbL).</p>
   </section>
 </main>
-<footer class="foot">Disaster Science Operations Center · prototype · companion to the <a href="https://manmeet3591.github.io/kenya-infra-risk/">Kenya Infrastructure Risk</a> map</footer>
+<footer class="foot">Disaster Science Operations Center · prototype · open code on <a href="https://github.com/manmeet3591/kentucky-outage-forecast">GitHub</a></footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

@@ -125,3 +125,9 @@ table.cmp td, table.cmp th { text-align: left; vertical-align: top; }
   .mapcol { height: 60vh; }
   .side { border-left: 0; }
 }
+
+.evsel { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.evsel select { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--ring); border-radius: 6px; padding: 4px 8px; }
+.badge { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 10px; border: 1px solid var(--ring); color: var(--ink-2); margin-left: 6px; vertical-align: middle; }
+.skill h3 { margin-top: 22px; }
+td.good { font-weight: 600; }
