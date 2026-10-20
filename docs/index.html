@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kenya Outage Forecast</title>
+<meta name="description" content="Weather-driven power outage and restoration-time forecasts for Kenya: hindcast of the April–May 2024 long-rains floods with 1–3 day forecast lead times.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Kenya Power Outage &amp; Restoration Forecast</h1>
+    <p class="sub">Hindcast · <span id="evName"></span></p>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-view="map">Event</button>
+    <button role="tab" aria-selected="false" data-view="skill">Forecast skill</button>
+    <button role="tab" aria-selected="false" data-view="eagle">vs EAGLE-I</button>
+    <button role="tab" aria-selected="false" data-view="method">Method</button>
+  </nav>
+</header>
+
+<div class="bar">
+  <div class="seg" id="source" role="radiogroup" aria-label="Weather input"></div>
+  <button id="play" class="play" aria-label="Play">▶</button>
+  <input id="time" type="range" min="0" value="0" aria-label="Time">
+  <output id="tlabel" class="tlabel"></output>
+</div>
+
+<main id="app">
+  <section class="view" id="view-map">
+    <div class="mapcol">
+      <div id="map" role="region" aria-label="Map of predicted outages"></div>
+      <div class="legend" id="legend"></div>
+      <div class="note" id="note"></div>
+    </div>
+    <aside class="side">
+      <div class="kpis" id="kpis"></div>
+      <div id="county"></div>
+    </aside>
+    <div class="national">
+      <div class="chead"><h2>People without power, national</h2><div class="key" id="natKey"></div></div>
+      <div id="natChart" class="chart"></div>
+    </div>
+  </section>
+
+  <section class="view hidden prose" id="view-skill">
+    <h2>Would we have seen it coming?</h2>
+    <p>Each forecast row runs the same outage model on NOAA GFS forecasts issued <b>1, 2 or 3 days before</b> each hour, and compares the result with the ERA5-driven hindcast. A county is "flagged" when its peak outage is ≥ <span class="flag"></span>% of people.</p>
+    <div class="tablewrap"><table id="skillTbl"></table></div>
+    <p class="caveat"><b>This measures consistency with the reanalysis hindcast, not accuracy against real outages.</b> We haven't found a public, county-level record of unplanned outages for Kenya. Validation needs KPLC interruption logs; see the Method tab.</p>
+    <h3>Known gap: Nairobi</h3>
+    <p id="gap"></p>
+  </section>
+
+  <section class="view hidden prose" id="view-eagle">
+    <h2>How this goes beyond EAGLE-I</h2>
+    <p>ORNL's EAGLE-I collects outage counts from US utilities every 15 minutes and maps customers out by county. It's an excellent <i>situational awareness</i> tool: it shows what is out <i>now</i>. This prototype aims at the decisions that come <i>before</i> the outage and during the restoration:</p>
+    <div class="tablewrap"><table class="cmp">
+      <thead><tr><th></th><th>EAGLE-I</th><th>This system</th></tr></thead>
+      <tbody>
+        <tr><td>Question answered</td><td>Who is out right now?</td><td>Who <b>will</b> be out, when, and for how long?</td></tr>
+        <tr><td>Lead time</td><td>0 (observed)</td><td>1–3 days today; up to 6 weeks of risk outlook with our AI S2S model</td></tr>
+        <tr><td>Restoration</td><td>Observed after the fact</td><td>Predicted time to 90% restoration, accounting for flooding and crew stand-downs</td></tr>
+        <tr><td>Drivers</td><td>Outage counts, with hazard layers shown alongside</td><td>Attributes each predicted outage to wind, intense rain or prolonged flooding</td></tr>
+        <tr><td>Critical facilities</td><td>Not linked</td><td>Expected hospitals without grid power, from the infrastructure risk layer</td></tr>
+        <tr><td>Where utility outage maps don't exist</td><td>No coverage</td><td>Works from weather and asset data alone; utility logs make it better</td></tr>
+        <tr><td>Weather resolution</td><td>n/a</td><td>~25 km now; 1 km with Aircast SR (next version)</td></tr>
+        <tr><td>Openness</td><td>Live platform access restricted; historical county data released</td><td>Open code, data and methods</td></tr>
+      </tbody>
+    </table></div>
+    <p>The two approaches are complementary. A Kenyan EAGLE-I-style feed of KPLC outage counts would be the ideal training and validation target for the forecast model.</p>
+  </section>
+
+  <section class="view hidden prose" id="view-method">
+    <h2>Method</h2>
+    <h3>Weather inputs</h3>
+    <ul>
+      <li><b>Hindcast</b>: ERA5 reanalysis (hourly rain and 10 m gusts), our best estimate of what happened.</li>
+      <li><b>Forecasts</b>: NOAA GFS runs issued 1, 2 and 3 days before each valid hour (Open-Meteo Previous Runs API), i.e. what a forecaster would actually have had.</li>
+      <li>Every county is sampled at ~0.5° grid points plus its centroid (199 points nationally).</li>
+    </ul>
+    <h3>Outage model</h3>
+    <p>At each point, lognormal fragility curves turn weather into the share of customers whose supply is interrupted:</p>
+    <p class="eq">D = 1 − (1 − F<sub>gust</sub>)(1 − F<sub>rain 24h</sub>)(1 − F<sub>rain 72h</sub>)</p>
+    <ul id="params"></ul>
+    <p>County outage share U tracks the 6-hour mean damage and is restored with time constant τ = τ₀(1 + R₇₂/<span class="taur"></span> mm). Restoration pauses while gusts exceed <span class="sg"></span> km/h or county-mean rain exceeds <span class="sr"></span> mm/h (crew safety). People affected = U × county population (2019 census).</p>
+    <h3>Limitations &amp; next steps</h3>
+    <ul>
+      <li>Fragility parameters are expert priors, not yet calibrated. With KPLC interruption logs we will fit them, then replace them with a learned model (gradient boosting / graph neural network over the feeder network).</li>
+      <li>Reanalysis and GFS at ~25 km miss intense local storms (see Nairobi). <b>Aircast SR</b> at 1 km / 1 hour is designed to fix this.</li>
+      <li>Population is used in place of electricity customers; county electrification rates differ widely.</li>
+      <li>River flooding, landslides and grid-level cascading failures (e.g. transmission trips causing national blackouts) aren't modelled.</li>
+    </ul>
+    <h3>Data</h3>
+    <p>ERA5 (Copernicus/ECMWF) and NOAA GFS via Open-Meteo; county boundaries geoBoundaries (CC BY 4.0); hospitals © OpenStreetMap contributors (ODbL); populations KNBS 2019 census.</p>
+  </section>
+</main>
+<footer class="foot">Disaster Science Operations Center · prototype · companion to the <a href="https://manmeet3591.github.io/kenya-infra-risk/">Kenya Infrastructure Risk</a> map</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="app.js?v=3"></script>
+</body>
+</html>
