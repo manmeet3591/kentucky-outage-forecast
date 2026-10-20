@@ -105,14 +105,14 @@ def main():
             **ev, "times": local, "step_h": STEP, "sources": srcs, "series": series, "summary": summary,
             "skill": skill, "statewide": statewide, "flag": FLAG,
         }, separators=(",", ":")))
-        index.append({k: ev[k] for k in ["id", "name", "role", "start", "end", "tz", "forecasts"]})
+        index.append({**{k: ev[k] for k in ["id", "name", "role", "start", "end", "tz", "forecasts"]}, "skill": skill["analysis"]})
 
     for f in gj["features"]:
         n = f["properties"]["name"]
         f["properties"].update({"hospitals": hosp[n], "substations": subs[n]})
     (OUT / "counties.geojson").write_text(json.dumps(gj, separators=(",", ":")))
     (OUT / "hospitals.geojson").write_text(json.dumps({"type": "FeatureCollection", "features": hosp_feats}, separators=(",", ":")))
-    (OUT / "meta.json").write_text(json.dumps({"events": index, "params": p, "calibration": {k: calib[k] for k in ["calibrated_on", "rmse_customers", "sim_statewide_peak", "loss"]},
+    (OUT / "meta.json").write_text(json.dumps({"events": index, "params": p, "calibration": {k: calib[k] for k in ["calibrated_on", "mean_loss", "loss"]},
                                                "total_customers": sum(cust.values()), "flag": FLAG}, indent=1))
     for f in sorted(OUT.iterdir()):
         print(f"{f.name}: {f.stat().st_size / 1e6:.2f} MB")

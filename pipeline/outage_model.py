@@ -12,11 +12,13 @@ is interrupted by the current weather:
 County outage share U then evolves hourly:
 
     D6        = mean county D over the last SUSTAIN_H hours
-    tau       = TAU0 * (1 + R72 / TAU_RAIN)      flooding slows access and repair
+    tau       = TAU0 * (1 + R72 / TAU_RAIN) * (1 + Umax / TAU_LOAD)
+                flooding slows access and repair. TAU_LOAD (crew saturation, Umax = county peak share
+                so far) was tested and not selected, so it defaults to off
     restored  = U * (1 - exp(-1 / tau)),  0 while max gust > SAFE_GUST or mean rain > SAFE_RAIN
     U         = max(D6, U - restored)
 
-Gust fragility and TAU0 are calibrated against EAGLE-I observed outages (calibrate.py).
+Gust fragility, TAU0, TAU_RAIN and SAFE_GUST are calibrated against EAGLE-I observed outages (calibrate.py).
 """
 import json
 import math
@@ -29,6 +31,7 @@ DEFAULT = {
     "SUSTAIN_H": 3,
     "TAU0": 24.0,
     "TAU_RAIN": 80.0,
+    "TAU_LOAD": 1000.0,  # off; tested in compare_versions.py, not selected
     "SAFE_GUST": 65.0,
     "SAFE_RAIN": 8.0,
 }
@@ -88,13 +91,14 @@ def damage(prep, p):
 
 def restore(prep, D, p):
     S = int(p["SUSTAIN_H"])
-    U, out = 0.0, []
+    U, umax, out = 0.0, 0.0, []
     for t in range(prep["n"]):
         d = sum(D[max(0, t - S + 1):t + 1]) / min(S, t + 1)
-        tau = p["TAU0"] * (1 + prep["R72"][t] / p["TAU_RAIN"])
+        tau = p["TAU0"] * (1 + prep["R72"][t] / p["TAU_RAIN"]) * (1 + umax / p["TAU_LOAD"])
         safe = prep["gmax"][t] <= p["SAFE_GUST"] and prep["rmean"][t] <= p["SAFE_RAIN"]
         restored = U * (1 - math.exp(-1 / tau)) if safe else 0.0
         U = min(1.0, max(d, U - restored))
+        umax = max(umax, U)
         out.append(U)
     return out
 

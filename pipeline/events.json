@@ -1,41 +1,26 @@
 [
-  {
-    "id": "ky-2023-03-windstorm",
-    "name": "March 2023 windstorm",
-    "role": "calibration",
-    "start": "2023-03-01",
-    "end": "2023-03-09",
-    "utc_offset": -5,
-    "tz": "EST",
-    "forecasts": false,
-    "notes": [
-      {"time": "2023-03-03T12:00", "text": "Widespread damaging winds cross Kentucky"}
-    ]
-  },
-  {
-    "id": "ky-2024-05-memorial",
-    "name": "Memorial Day weekend storms, May 2024",
-    "role": "test",
-    "start": "2024-05-24",
-    "end": "2024-05-31",
-    "utc_offset": -4,
-    "tz": "EDT",
-    "forecasts": true,
-    "notes": [
-      {"time": "2024-05-26T18:00", "text": "Severe thunderstorms with damaging winds sweep the state"}
-    ]
-  },
-  {
-    "id": "ky-2024-09-helene",
-    "name": "Remnants of Hurricane Helene, September 2024",
-    "role": "test",
-    "start": "2024-09-25",
-    "end": "2024-10-02",
-    "utc_offset": -4,
-    "tz": "EDT",
-    "forecasts": true,
-    "notes": [
-      {"time": "2024-09-27T15:00", "text": "Helene's remnants bring strong winds to eastern and central Kentucky"}
-    ]
-  }
+  {"id": "ky-2023-03-windstorm", "name": "March 2023 windstorm", "role": "calibration", "start": "2023-03-01", "end": "2023-03-09", "utc_offset": -5, "tz": "EST", "forecasts": false, "notes": [{"time": "2023-03-03T12:00", "text": "Widespread damaging winds cross Kentucky"}]},
+  {"id": "ky-2018-05-storms", "name": "Severe thunderstorms, May 2018", "role": "calibration", "start": "2018-05-29", "end": "2018-06-05", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2018-05-31T16:00", "text": "Damaging thunderstorm winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2018-06-storms", "name": "Severe thunderstorms, June 2018", "role": "calibration", "start": "2018-06-24", "end": "2018-07-01", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2018-06-26T14:00", "text": "Damaging thunderstorm winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2018-07-storms", "name": "Severe thunderstorms, July 2018", "role": "calibration", "start": "2018-07-19", "end": "2018-07-26", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2018-07-20T22:00", "text": "Damaging thunderstorm winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2018-10-windstorm", "name": "Cold-front windstorm, October 2018", "role": "calibration", "start": "2018-10-19", "end": "2018-10-26", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2018-10-20T21:00", "text": "Strong post-frontal winds in Louisville and northern Kentucky (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2019-03-windstorm", "name": "High winds, March 2019", "role": "calibration", "start": "2019-03-12", "end": "2019-03-19", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2019-03-14T17:00", "text": "Strong gradient winds from a deep low (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2019-06-storms", "name": "Severe thunderstorms, June 2019", "role": "calibration", "start": "2019-06-20", "end": "2019-06-27", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2019-06-21T22:00", "text": "Damaging thunderstorm winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2020-01-windstorm", "name": "January 2020 squall line", "role": "calibration", "start": "2020-01-09", "end": "2020-01-16", "utc_offset": -5, "tz": "EST", "forecasts": false, "notes": [{"time": "2020-01-11T14:00", "text": "Fast squall line with strong winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2020-04-easter", "name": "Easter windstorm and tornadoes, April 2020", "role": "calibration", "start": "2020-04-11", "end": "2020-04-18", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2020-04-13T09:00", "text": "Strong gradient winds behind a squall line (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2021-12-tornado", "name": "December 2021 tornado outbreak", "role": "calibration", "start": "2021-12-09", "end": "2021-12-16", "utc_offset": -5, "tz": "EST", "forecasts": false, "notes": [{"time": "2021-12-11T07:00", "text": "Long-track tornadoes and a strong cold-front windstorm (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2022-03-windstorm", "name": "Windstorm, March 2022", "role": "calibration", "start": "2022-03-29", "end": "2022-04-05", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2022-03-31T01:00", "text": "Squall line and strong gradient winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2022-04-storms", "name": "Severe storms, April 2022", "role": "calibration", "start": "2022-04-12", "end": "2022-04-19", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2022-04-13T22:00", "text": "Squall line with damaging winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2022-06-storms", "name": "Severe thunderstorms, June 2022", "role": "calibration", "start": "2022-06-15", "end": "2022-06-22", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2022-06-17T14:00", "text": "Afternoon derecho-like storms in eastern Kentucky (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2022-07-storms", "name": "Severe thunderstorms, July 2022", "role": "calibration", "start": "2022-07-04", "end": "2022-07-11", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2022-07-06T17:00", "text": "Damaging thunderstorm winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2023-04-windstorm", "name": "Windstorm and tornadoes, April 2023", "role": "calibration", "start": "2023-03-30", "end": "2023-04-06", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2023-04-01T15:00", "text": "Strong synoptic winds and a tornado outbreak (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2023-06-storms", "name": "Severe thunderstorms, June 2023", "role": "calibration", "start": "2023-06-24", "end": "2023-07-01", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2023-06-26T01:00", "text": "Overnight line of damaging thunderstorms (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2023-07-storms", "name": "Severe thunderstorms, July 2023", "role": "calibration", "start": "2023-06-30", "end": "2023-07-07", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2023-07-02T19:00", "text": "Damaging thunderstorm winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2023-08-storms", "name": "Severe thunderstorms, August 2023", "role": "calibration", "start": "2023-08-24", "end": "2023-08-31", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2023-08-25T21:00", "text": "Damaging thunderstorm winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2025-02-flood", "name": "Flooding and high winds, February 2025", "role": "calibration", "start": "2025-02-14", "end": "2025-02-21", "utc_offset": -5, "tz": "EST", "forecasts": false, "notes": [{"time": "2025-02-16T10:00", "text": "Widespread flooding and strong winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2025-04-storms", "name": "Tornadoes and flooding, April 2025", "role": "calibration", "start": "2025-04-01", "end": "2025-04-08", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2025-04-03T02:00", "text": "Severe storms, then days of record rain (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2025-05-tornado", "name": "London tornado and severe storms, May 2025", "role": "calibration", "start": "2025-05-15", "end": "2025-05-22", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2025-05-17T00:00", "text": "Tornadic supercells and damaging winds, including the London EF4 (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2025-06-storms", "name": "Severe thunderstorms, June 2025", "role": "calibration", "start": "2025-06-17", "end": "2025-06-24", "utc_offset": -4, "tz": "EDT", "forecasts": false, "notes": [{"time": "2025-06-18T21:00", "text": "Damaging thunderstorm winds (EAGLE-I statewide peak)"}]},
+  {"id": "ky-2024-05-memorial", "name": "Memorial Day weekend storms, May 2024", "role": "test", "start": "2024-05-24", "end": "2024-05-31", "utc_offset": -4, "tz": "EDT", "forecasts": true, "notes": [{"time": "2024-05-26T18:00", "text": "Severe thunderstorms with damaging winds sweep the state"}]},
+  {"id": "ky-2024-09-helene", "name": "Remnants of Hurricane Helene, September 2024", "role": "test", "start": "2024-09-25", "end": "2024-10-02", "utc_offset": -4, "tz": "EDT", "forecasts": true, "notes": [{"time": "2024-09-27T15:00", "text": "Helene's remnants bring strong winds to eastern and central Kentucky"}]}
 ]

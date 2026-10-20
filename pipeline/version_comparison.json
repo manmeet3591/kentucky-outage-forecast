@@ -1,0 +1,62 @@
+{
+ "v2 log peak + log customer-hours, no crew saturation": {
+  "loeo_mean_abs_log_etr90_ratio": 0.86,
+  "loeo_median_etr90_factor": 1.91,
+  "loeo_mean_decay_mse": 0.0329,
+  "full_fit": {
+   "TAU0": 4,
+   "TAU_LOAD": 1000,
+   "SAFE_GUST": 90,
+   "TAU_RAIN": 400
+  },
+  "distinct_fold_picks": 4
+ },
+ "v3 log peak + unaligned curve shape, no crew saturation": {
+  "loeo_mean_abs_log_etr90_ratio": 1.215,
+  "loeo_median_etr90_factor": 3.67,
+  "loeo_mean_decay_mse": 0.0389,
+  "full_fit": {
+   "TAU0": 2,
+   "TAU_LOAD": 1000,
+   "SAFE_GUST": 90,
+   "TAU_RAIN": 400
+  },
+  "distinct_fold_picks": 1
+ },
+ "v4 log peak + unaligned curve shape, crew saturation (TAU_LOAD)": {
+  "loeo_mean_abs_log_etr90_ratio": 1.215,
+  "loeo_median_etr90_factor": 3.67,
+  "loeo_mean_decay_mse": 0.0389,
+  "full_fit": {
+   "TAU0": 2,
+   "TAU_LOAD": 1000,
+   "SAFE_GUST": 90,
+   "TAU_RAIN": 400
+  },
+  "distinct_fold_picks": 1
+ },
+ "v5a log peak + aligned post-peak decay, no crew saturation": {
+  "loeo_mean_abs_log_etr90_ratio": 1.201,
+  "loeo_median_etr90_factor": 3.67,
+  "loeo_mean_decay_mse": 0.0386,
+  "full_fit": {
+   "TAU0": 2,
+   "TAU_LOAD": 1000,
+   "SAFE_GUST": 90,
+   "TAU_RAIN": 400
+  },
+  "distinct_fold_picks": 2
+ },
+ "v5 log peak + aligned post-peak decay, crew saturation (TAU_LOAD)": {
+  "loeo_mean_abs_log_etr90_ratio": 1.201,
+  "loeo_median_etr90_factor": 3.67,
+  "loeo_mean_decay_mse": 0.0386,
+  "full_fit": {
+   "TAU0": 2,
+   "TAU_LOAD": 1000,
+   "SAFE_GUST": 90,
+   "TAU_RAIN": 400
+  },
+  "distinct_fold_picks": 2
+ }
+}

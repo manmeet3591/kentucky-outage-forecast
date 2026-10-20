@@ -1,45 +1,238 @@
 {
- "calibrated_on": "ky-2023-03-windstorm",
- "loss": "RMSE customers out per county-hour",
- "rmse_customers": 1773.7,
- "sim_statewide_peak": 581892,
+ "calibrated_on": [
+  "ky-2023-03-windstorm",
+  "ky-2018-05-storms",
+  "ky-2018-06-storms",
+  "ky-2018-07-storms",
+  "ky-2018-10-windstorm",
+  "ky-2019-03-windstorm",
+  "ky-2019-06-storms",
+  "ky-2020-01-windstorm",
+  "ky-2020-04-easter",
+  "ky-2021-12-tornado",
+  "ky-2022-03-windstorm",
+  "ky-2022-04-storms",
+  "ky-2022-06-storms",
+  "ky-2022-07-storms",
+  "ky-2023-04-windstorm",
+  "ky-2023-06-storms",
+  "ky-2023-07-storms",
+  "ky-2023-08-storms",
+  "ky-2025-02-flood",
+  "ky-2025-04-storms",
+  "ky-2025-05-tornado",
+  "ky-2025-06-storms"
+ ],
+ "loss": "mean over events of ln^2 statewide peak ratio + ln^2 customer-hours ratio (floor 10000 customers)",
+ "mean_loss": 2.9196,
+ "events": {
+  "ky-2023-03-windstorm": {
+   "loss": 2.342,
+   "sim_peak": 401257,
+   "obs_peak": 522613,
+   "peak_ratio": 0.768,
+   "customer_hours_ratio": 0.213
+  },
+  "ky-2018-05-storms": {
+   "loss": 0.219,
+   "sim_peak": 36671,
+   "obs_peak": 63625,
+   "peak_ratio": 0.576,
+   "customer_hours_ratio": 0.866
+  },
+  "ky-2018-06-storms": {
+   "loss": 0.519,
+   "sim_peak": 21851,
+   "obs_peak": 36614,
+   "peak_ratio": 0.597,
+   "customer_hours_ratio": 0.391
+  },
+  "ky-2018-07-storms": {
+   "loss": 7.548,
+   "sim_peak": 15885,
+   "obs_peak": 123898,
+   "peak_ratio": 0.128,
+   "customer_hours_ratio": 0.052
+  },
+  "ky-2018-10-windstorm": {
+   "loss": 0.947,
+   "sim_peak": 85817,
+   "obs_peak": 33587,
+   "peak_ratio": 2.555,
+   "customer_hours_ratio": 2.321
+  },
+  "ky-2019-03-windstorm": {
+   "loss": 7.01,
+   "sim_peak": 344777,
+   "obs_peak": 43860,
+   "peak_ratio": 7.861,
+   "customer_hours_ratio": 8.745
+  },
+  "ky-2019-06-storms": {
+   "loss": 0.216,
+   "sim_peak": 35668,
+   "obs_peak": 41510,
+   "peak_ratio": 0.859,
+   "customer_hours_ratio": 0.555
+  },
+  "ky-2020-01-windstorm": {
+   "loss": 7.177,
+   "sim_peak": 312973,
+   "obs_peak": 36915,
+   "peak_ratio": 8.478,
+   "customer_hours_ratio": 8.663
+  },
+  "ky-2020-04-easter": {
+   "loss": 0.37,
+   "sim_peak": 140935,
+   "obs_peak": 73638,
+   "peak_ratio": 1.914,
+   "customer_hours_ratio": 0.856
+  },
+  "ky-2021-12-tornado": {
+   "loss": 1.218,
+   "sim_peak": 289251,
+   "obs_peak": 96351,
+   "peak_ratio": 3.002,
+   "customer_hours_ratio": 1.507
+  },
+  "ky-2022-03-windstorm": {
+   "loss": 3.643,
+   "sim_peak": 183847,
+   "obs_peak": 33604,
+   "peak_ratio": 5.471,
+   "customer_hours_ratio": 4.279
+  },
+  "ky-2022-04-storms": {
+   "loss": 0.686,
+   "sim_peak": 82697,
+   "obs_peak": 57070,
+   "peak_ratio": 1.449,
+   "customer_hours_ratio": 2.532
+  },
+  "ky-2022-06-storms": {
+   "loss": 4.648,
+   "sim_peak": 7652,
+   "obs_peak": 73323,
+   "peak_ratio": 0.104,
+   "customer_hours_ratio": 0.093
+  },
+  "ky-2022-07-storms": {
+   "loss": 5.313,
+   "sim_peak": 1736,
+   "obs_peak": 62258,
+   "peak_ratio": 0.028,
+   "customer_hours_ratio": 0.054
+  },
+  "ky-2023-04-windstorm": {
+   "loss": 3.597,
+   "sim_peak": 297281,
+   "obs_peak": 57538,
+   "peak_ratio": 5.167,
+   "customer_hours_ratio": 3.433
+  },
+  "ky-2023-06-storms": {
+   "loss": 6.172,
+   "sim_peak": 20239,
+   "obs_peak": 136114,
+   "peak_ratio": 0.149,
+   "customer_hours_ratio": 0.081
+  },
+  "ky-2023-07-storms": {
+   "loss": 2.584,
+   "sim_peak": 26559,
+   "obs_peak": 65388,
+   "peak_ratio": 0.406,
+   "customer_hours_ratio": 0.141
+  },
+  "ky-2023-08-storms": {
+   "loss": 3.542,
+   "sim_peak": 2179,
+   "obs_peak": 41880,
+   "peak_ratio": 0.052,
+   "customer_hours_ratio": 0.079
+  },
+  "ky-2025-02-flood": {
+   "loss": 1.518,
+   "sim_peak": 127768,
+   "obs_peak": 40861,
+   "peak_ratio": 3.127,
+   "customer_hours_ratio": 2.301
+  },
+  "ky-2025-04-storms": {
+   "loss": 3.206,
+   "sim_peak": 172301,
+   "obs_peak": 47923,
+   "peak_ratio": 3.595,
+   "customer_hours_ratio": 4.645
+  },
+  "ky-2025-05-tornado": {
+   "loss": 1.515,
+   "sim_peak": 58448,
+   "obs_peak": 168134,
+   "peak_ratio": 0.348,
+   "customer_hours_ratio": 0.425
+  },
+  "ky-2025-06-storms": {
+   "loss": 0.242,
+   "sim_peak": 25933,
+   "obs_peak": 38164,
+   "peak_ratio": 0.679,
+   "customer_hours_ratio": 0.519
+  }
+ },
  "params": {
   "gust": {
-   "median": 110,
-   "beta": 0.3
+   "median": 125,
+   "beta": 0.4
   },
-  "TAU0": 36
+  "TAU0": 3,
+  "SAFE_GUST": 90,
+  "TAU_RAIN": 400
  },
  "grid": {
   "medians": [
-   60,
-   65,
-   70,
-   75,
-   80,
-   85,
    90,
-   95,
    100,
    110,
-   120
+   115,
+   120,
+   125,
+   130,
+   140,
+   150
   ],
   "betas": [
+   0.1,
    0.15,
    0.2,
    0.25,
    0.3,
-   0.35,
-   0.45
+   0.4
   ],
   "taus": [
+   2,
+   3,
+   4,
    6,
+   9,
    12,
    18,
    24,
    36,
-   48,
-   72
+   48
+  ],
+  "safe_gusts": [
+   55,
+   65,
+   75,
+   90
+  ],
+  "tau_rains": [
+   40,
+   80,
+   160,
+   400
   ]
  }
 }

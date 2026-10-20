@@ -188,7 +188,18 @@
   }
 
   async function renderSkill() {
-    const evs = await Promise.all(META.events.map(e => loadEvent(e.id)));
+    const tests = META.events.filter(e => e.role !== "calibration");
+    const evs = await Promise.all(tests.map(e => loadEvent(e.id)));
+    const hs = e => e.skill;
+    const sumRow = e => `<tr><td>${esc(e.name)}</td><td>${big(hs(e).obs_peak_customers)}</td><td>${big(hs(e).peak_customers)}</td><td>${pct(hs(e).peak_ratio, 0)}</td>
+      <td>${(hs(e).peak_timing_error_h > 0 ? "+" : "") + hs(e).peak_timing_error_h} h</td><td>${hs(e).corr_statewide_curve.toFixed(2)}</td><td>${hs(e).hit_rate == null ? "–" : pct(hs(e).hit_rate, 0) + ` of ${hs(e).n_flagged_obs}`}</td></tr>`;
+    const group = (label, list) => `<tr class="grp"><td colspan="7">${label}</td></tr>` + list.map(sumRow).join("");
+    const cal = META.events.filter(e => e.role === "calibration");
+    const ratios = cal.map(e => hs(e).peak_ratio).filter(r => r > 0).sort((a, b) => a - b);
+    const median = ratios[Math.floor(ratios.length / 2)];
+    const summary = `<h3>All events, ERA5 hindcast <span class="badge">${cal.length} calibration + ${tests.length} test</span></h3>
+      <div class="tablewrap"><table><thead><tr><th>Event</th><th>Observed peak</th><th>Model peak</th><th>Peak vs observed</th><th>Peak timing</th><th>Curve corr.</th><th>Hard-hit counties caught</th></tr></thead><tbody>
+      ${group("Independent tests (not used in fitting)", tests)}${group("Calibration events", cal)}</tbody></table></div>`;
     const rows = [
       ["Statewide peak (customers)", s => big(s.peak_customers), s => big(s.obs_peak_customers)],
       ["Peak vs observed", s => pct(s.peak_ratio, 0)],
@@ -200,19 +211,18 @@
       ["County peak correlation", s => s.corr_county_peak.toFixed(2)],
       ["Time to 90% restored", s => (s.etr90_h == null ? "beyond window" : s.etr90_h + " h"), s => (s.obs_etr90_h == null ? "–" : s.obs_etr90_h + " h")],
     ];
-    document.getElementById("skillTables").innerHTML = evs.map(ev => {
+    document.getElementById("skillTables").innerHTML = summary + evs.map(ev => {
       const ks = ev.sources;
-      return `<h3>${esc(ev.name)} <span class="badge">${ev.role === "calibration" ? "calibration event" : "independent test"}</span></h3>
+      return `<h3>${esc(ev.name)} <span class="badge">independent test</span></h3>
         <div class="tablewrap"><table><thead><tr><th>Metric</th><th>Observed</th>${ks.map(k => `<th>${SRC[k].short}</th>`).join("")}</tr></thead><tbody>
         ${rows.map(([l, f, fo]) => `<tr><td>${l}</td><td>${fo ? fo(ev.skill[ks[0]]) : "–"}</td>${ks.map(k => `<td>${f(ev.skill[k])}</td>`).join("")}</tr>`).join("")}
         </tbody></table></div>`;
     }).join("");
-    const [mar, may, sep] = evs, ss = (e, k) => e.skill[k];
+    const may = evs.find(e => e.id.includes("2024-05")), sep = evs.find(e => e.id.includes("helene")), ss = (e, k) => e.skill[k];
     document.getElementById("findings").innerHTML = `
-      <li><b>Large-scale windstorms are predictable days ahead.</b> For Helene's remnants, the statewide peak arrived within ${Math.abs(ss(sep, "lead3").peak_timing_error_h)} h of the observed peak in a forecast issued <b>3 days earlier</b>, and ${pct(ss(sep, "lead2").hit_rate, 0)} of hard-hit counties were flagged 2 days ahead.</li>
-      <li><b>Magnitude needs more calibration.</b> With one calibration event, Helene was overpredicted (hindcast ${pct(ss(sep, "analysis").peak_ratio, 0)} of the observed peak) and restoration was too slow. Fitting across the 2014–2025 EAGLE-I archive is the next step.</li>
-      <li><b>Thunderstorms are the gap.</b> The May 2024 storms put ${big(ss(may, "analysis").obs_peak_customers)} customers out, but ERA5 and GFS at ~25 km don't resolve convective gusts. The hindcast reached only ${pct(ss(may, "analysis").peak_ratio, 0)} of the observed peak. This is why we're building <b>Aircast SR at 1 km</b> (and should test HRRR at 3 km).</li>
-      <li><b>Calibration event:</b> peak within ${pct(Math.abs(ss(mar, "analysis").peak_ratio - 1), 0)}, exact timing, statewide curve correlation ${ss(mar, "analysis").corr_statewide_curve.toFixed(2)}.</li>`;
+      <li><b>Large-scale windstorms are predictable days ahead.</b> For Helene's remnants, the statewide peak ${ss(sep, "lead3").peak_timing_error_h === 0 ? "landed in the same 3-hour step as the observed peak" : `arrived within ${Math.abs(ss(sep, "lead3").peak_timing_error_h)} h of the observed peak`} in a forecast issued <b>3 days earlier</b>, and ${pct(ss(sep, "lead2").hit_rate, 0)} of hard-hit counties were flagged 2 days ahead.</li>
+      <li><b>Fitting on ${cal.length} events instead of one.</b> Helene's hindcast peak is now ${pct(ss(sep, "analysis").peak_ratio, 0)} of observed (209% when calibrated on March 2023 alone), and customer-hours ${pct(ss(sep, "analysis").customer_hours_ratio, 0)} (456% before). But the fitted τ₀ is only ${META.params.TAU0} h, so restoration is now too fast: 90% restored in ${ss(sep, "analysis").etr90_h} h vs ${ss(sep, "analysis").obs_etr90_h} h observed. Across calibration events the peak ratio ranges from ${pct(ratios[0], 0)} to ${pct(ratios[ratios.length - 1], 0)} (median ${pct(median, 0)}): on 25 km weather, one set of gust fragility curves can't separate a 40k-customer windstorm from a 500k one.</li>
+      <li><b>Thunderstorms are the gap.</b> The May 2024 storms put ${big(ss(may, "analysis").obs_peak_customers)} customers out, but ERA5 and GFS at ~25 km don't resolve convective gusts. The hindcast reached ${pct(ss(may, "analysis").peak_ratio, 0)} of the observed peak (4% with the single-event fit). This is why we're building <b>Aircast SR at 1 km</b> (and should test HRRR at 3 km).</li>`;
   }
 
   // ---------------- interaction ----------------
@@ -253,7 +263,7 @@
 
   function initControls() {
     const sel = document.getElementById("event");
-    sel.innerHTML = META.events.map(e => `<option value="${e.id}">${esc(e.name)}${e.role === "calibration" ? " (calibration)" : ""}</option>`).join("");
+    sel.innerHTML = [...META.events].sort((a, b) => a.start.localeCompare(b.start)).map(e => `<option value="${e.id}">${esc(e.name)}${e.role === "calibration" ? " (calibration)" : ""}</option>`).join("");
     sel.value = META.events.find(e => e.id.includes("helene"))?.id || META.events[0].id;
     sel.addEventListener("change", () => setEvent(sel.value));
     document.getElementById("time").addEventListener("input", e => setTime(+e.target.value));
@@ -277,12 +287,12 @@
   function renderMethod() {
     const p = META.params, c = META.calibration;
     document.getElementById("params").innerHTML = [["F<sub>gust</sub>", p.gust, "km/h max 10 m gust", true], ["F<sub>rain 24h</sub>", p.rain24, "mm in 24 h"], ["F<sub>rain 72h</sub>", p.rain72, "mm in 72 h"]]
-      .map(([n, q, u, cal]) => `<li>${n}: median ${q.median} ${u}, log-std β = ${q.beta}${cal ? " <b>(calibrated)</b>" : " (prior)"}</li>`).join("") + `<li>τ₀ = ${p.TAU0} h <b>(calibrated)</b></li>`;
+      .map(([n, q, u, cal]) => `<li>${n}: median ${q.median} ${u}, log-std β = ${q.beta}${cal ? " <b>(calibrated)</b>" : " (prior)"}</li>`).join("") + `<li>τ₀ = ${p.TAU0} h, stand-down gust ${p.SAFE_GUST} km/h, flood slow-down ${p.TAU_RAIN} mm <b>(calibrated)</b></li>`;
     document.querySelector(".sus").textContent = p.SUSTAIN_H;
     document.querySelector(".taur").textContent = p.TAU_RAIN;
     document.querySelector(".sg").textContent = p.SAFE_GUST;
     document.querySelector(".sr").textContent = p.SAFE_RAIN;
-    document.getElementById("calib").innerHTML = `Gust fragility and τ₀ were fitted by grid search on the <b>March 2023 windstorm</b> only, minimising the RMSE of customers out per county-hour against EAGLE-I (best RMSE ${num(c.rmse_customers)} customers). The 2024 events weren't used in fitting.`;
+    document.getElementById("calib").innerHTML = `Gust fragility, τ₀, the crew stand-down gust and the flood slow-down were fitted jointly by grid search on <b>${c.calibrated_on.length} EAGLE-I wind and rain events from 2018–2025</b>. Each event counts equally: the loss is the squared log error of the statewide peak plus that of total customer-hours, so 2× over and 2× under cost the same (mean ${c.mean_loss.toFixed(2)}). The two 2024 test events weren't used in fitting.`;
   }
 
   async function load() {
